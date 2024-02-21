@@ -10,6 +10,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net"
 	"net/url"
 	"reflect"
@@ -37,25 +38,32 @@ const rfc3339WithoutZone = "2006-01-02T15:04:05"
 // SetFieldsRequiredByDefault causes validation to fail when struct fields
 // do not include validations or are not explicitly marked as exempt (using `valid:"-"` or `valid:"email,optional"`).
 // This struct definition will fail govalidator.ValidateStruct() (and the field values do not matter):
-//     type exampleStruct struct {
-//         Name  string ``
-//         Email string `valid:"email"`
+//
+//	type exampleStruct struct {
+//	    Name  string ``
+//	    Email string `valid:"email"`
+//
 // This, however, will only fail when Email is empty or an invalid email address:
-//     type exampleStruct2 struct {
-//         Name  string `valid:"-"`
-//         Email string `valid:"email"`
+//
+//	type exampleStruct2 struct {
+//	    Name  string `valid:"-"`
+//	    Email string `valid:"email"`
+//
 // Lastly, this will only fail when Email is an invalid email address but not when it's empty:
-//     type exampleStruct2 struct {
-//         Name  string `valid:"-"`
-//         Email string `valid:"email,optional"`
+//
+//	type exampleStruct2 struct {
+//	    Name  string `valid:"-"`
+//	    Email string `valid:"email,optional"`
 func SetFieldsRequiredByDefault(value bool) {
 	fieldsRequiredByDefault = value
 }
 
 // SetNilPtrAllowedByRequired causes validation to pass for nil ptrs when a field is set to required.
 // The validation will still reject ptr fields in their zero value state. Example with this enabled:
-//     type exampleStruct struct {
-//         Name  *string `valid:"required"`
+//
+//	type exampleStruct struct {
+//	    Name  *string `valid:"required"`
+//
 // With `Name` set to "", this will be considered invalid input and will cause a validation error.
 // With `Name` set to nil, this will be considered valid by validation.
 // By default this is disabled.
@@ -154,8 +162,8 @@ func IsAlpha(str string) bool {
 	return rxAlpha.MatchString(str)
 }
 
-//IsUTFLetter checks if the string contains only unicode letter characters.
-//Similar to IsAlpha but for all languages. Empty string is valid.
+// IsUTFLetter checks if the string contains only unicode letter characters.
+// Similar to IsAlpha but for all languages. Empty string is valid.
 func IsUTFLetter(str string) bool {
 	if IsNull(str) {
 		return true
@@ -398,8 +406,8 @@ const ulidEncodedSize = 26
 // IsULID checks if the string is a ULID.
 //
 // Implementation got from:
-//   https://github.com/oklog/ulid (Apache-2.0 License)
 //
+//	https://github.com/oklog/ulid (Apache-2.0 License)
 func IsULID(str string) bool {
 	// Check if a base32 encoded ULID is the right length.
 	if len(str) != ulidEncodedSize {
@@ -454,26 +462,26 @@ func IsCreditCard(str string) bool {
 	if !rxCreditCard.MatchString(sanitized) {
 		return false
 	}
-	
+
 	number, _ := ToInt(sanitized)
-	number, lastDigit := number / 10, number % 10	
+	number, lastDigit := number/10, number%10
 
 	var sum int64
-	for i:=0; number > 0; i++ {
+	for i := 0; number > 0; i++ {
 		digit := number % 10
-		
-		if i % 2 == 0 {
+
+		if i%2 == 0 {
 			digit *= 2
 			if digit > 9 {
 				digit -= 9
 			}
 		}
-		
+
 		sum += digit
 		number = number / 10
 	}
-	
-	return (sum + lastDigit) % 10 == 0
+
+	return (sum+lastDigit)%10 == 0
 }
 
 // IsISBN10 checks if the string is an ISBN version 10.
@@ -595,7 +603,7 @@ func IsFilePath(str string) (bool, int) {
 	return false, Unknown
 }
 
-//IsWinFilePath checks both relative & absolute paths in Windows
+// IsWinFilePath checks both relative & absolute paths in Windows
 func IsWinFilePath(str string) bool {
 	if rxARWinPath.MatchString(str) {
 		//check windows path limit see:
@@ -608,7 +616,7 @@ func IsWinFilePath(str string) bool {
 	return false
 }
 
-//IsUnixFilePath checks both relative & absolute paths in Unix
+// IsUnixFilePath checks both relative & absolute paths in Unix
 func IsUnixFilePath(str string) bool {
 	if rxARUnixPath.MatchString(str) {
 		return true
@@ -1000,7 +1008,8 @@ func ValidateArray(array []interface{}, iterator ConditionIterator) bool {
 // result will be equal to `false` if there are any errors.
 // s is the map containing the data to be validated.
 // m is the validation map in the form:
-//   map[string]interface{}{"name":"required,alpha","address":map[string]interface{}{"line1":"required,alphanum"}}
+//
+//	map[string]interface{}{"name":"required,alpha","address":map[string]interface{}{"line1":"required,alphanum"}}
 func ValidateMap(s map[string]interface{}, m map[string]interface{}) (bool, error) {
 	if s == nil {
 		return true, nil
@@ -1305,11 +1314,12 @@ func IsISO4217(str string) bool {
 }
 
 // ByteLength checks string's length
-func ByteLength(str string, params ...string) bool {
+func ByteLength(v reflect.Value, params ...string) bool {
 	if len(params) == 2 {
+		l := v.Len()
 		min, _ := ToInt(params[0])
 		max, _ := ToInt(params[1])
-		return len(str) >= int(min) && len(str) <= int(max)
+		return l >= int(min) && l <= int(max)
 	}
 
 	return false
@@ -1317,35 +1327,35 @@ func ByteLength(str string, params ...string) bool {
 
 // RuneLength checks string's length
 // Alias for StringLength
-func RuneLength(str string, params ...string) bool {
-	return StringLength(str, params...)
+func RuneLength(v reflect.Value, params ...string) bool {
+	return StringLength(v, params...)
 }
 
 // IsRsaPub checks whether string is valid RSA key
 // Alias for IsRsaPublicKey
-func IsRsaPub(str string, params ...string) bool {
+func IsRsaPub(v reflect.Value, params ...string) bool {
 	if len(params) == 1 {
 		len, _ := ToInt(params[0])
-		return IsRsaPublicKey(str, int(len))
+		return IsRsaPublicKey(v.String(), int(len))
 	}
 
 	return false
 }
 
 // StringMatches checks if a string matches a given pattern.
-func StringMatches(s string, params ...string) bool {
+func StringMatches(v reflect.Value, params ...string) bool {
 	if len(params) == 1 {
 		pattern := params[0]
-		return Matches(s, pattern)
+		return Matches(v.String(), pattern)
 	}
 	return false
 }
 
 // StringLength checks string's length (including multi byte strings)
-func StringLength(str string, params ...string) bool {
+func StringLength(v reflect.Value, params ...string) bool {
 
 	if len(params) == 2 {
-		strLength := utf8.RuneCountInString(str)
+		strLength := utf8.RuneCountInString(v.String())
 		min, _ := ToInt(params[0])
 		max, _ := ToInt(params[1])
 		return strLength >= int(min) && strLength <= int(max)
@@ -1355,10 +1365,10 @@ func StringLength(str string, params ...string) bool {
 }
 
 // MinStringLength checks string's minimum length (including multi byte strings)
-func MinStringLength(str string, params ...string) bool {
+func MinStringLength(v reflect.Value, params ...string) bool {
 
 	if len(params) == 1 {
-		strLength := utf8.RuneCountInString(str)
+		strLength := utf8.RuneCountInString(v.String())
 		min, _ := ToInt(params[0])
 		return strLength >= int(min)
 	}
@@ -1367,10 +1377,10 @@ func MinStringLength(str string, params ...string) bool {
 }
 
 // MaxStringLength checks string's maximum length (including multi byte strings)
-func MaxStringLength(str string, params ...string) bool {
+func MaxStringLength(v reflect.Value, params ...string) bool {
 
 	if len(params) == 1 {
-		strLength := utf8.RuneCountInString(str)
+		strLength := utf8.RuneCountInString(v.String())
 		max, _ := ToInt(params[0])
 		return strLength <= int(max)
 	}
@@ -1379,11 +1389,36 @@ func MaxStringLength(str string, params ...string) bool {
 }
 
 // Range checks string's length
-func Range(str string, params ...string) bool {
+func Range(v reflect.Value, params ...string) bool {
 	if len(params) == 2 {
-		value, _ := ToFloat(str)
-		min, _ := ToFloat(params[0])
-		max, _ := ToFloat(params[1])
+		var value, min, max interface{}
+		var kind = v.Kind()
+		switch kind {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			value = v.Int()
+			min, _ = strconv.ParseInt(params[0], 10, 64)
+			max, _ = strconv.ParseInt(params[1], 10, 64)
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			value = v.Uint()
+			min, _ = strconv.ParseUint(params[0], 10, 64)
+			max, _ = strconv.ParseUint(params[1], 10, 64)
+		case reflect.Float32, reflect.Float64:
+			value = v.Float()
+			min, _ = strconv.ParseFloat(params[0], 64)
+			max, _ = strconv.ParseFloat(params[1], 64)
+		case reflect.String:
+			value = v.String()
+			min = params[0]
+			max = params[1]
+		default:
+			return false
+		}
+		if params[0] == "" && kind != reflect.String {
+			min = math.Inf(-1)
+		}
+		if params[1] == "" && kind != reflect.String {
+			min = math.Inf(1)
+		}
 		return InRange(value, min, max)
 	}
 
@@ -1391,13 +1426,13 @@ func Range(str string, params ...string) bool {
 }
 
 // IsInRaw checks if string is in list of allowed values
-func IsInRaw(str string, params ...string) bool {
+func IsInRaw(v reflect.Value, params ...string) bool {
 	if len(params) == 1 {
 		rawParams := params[0]
 
 		parsedParams := strings.Split(rawParams, "|")
 
-		return IsIn(str, parsedParams...)
+		return IsIn(v.String(), parsedParams...)
 	}
 
 	return false
@@ -1587,7 +1622,7 @@ func typeCheck(v reflect.Value, t reflect.StructField, o reflect.Value, options 
 					reflect.Float32, reflect.Float64:
 
 					field := fmt.Sprint(v) // make value into string, then validate with regex
-					if result := validatefunc(field, ps[1:]...); (!result && !negate) || (result && negate) {
+					if result := validatefunc(v, ps[1:]...); (!result && !negate) || (result && negate) {
 						if customMsgExists {
 							return false, Error{t.Name, TruncatingErrorf(validatorStruct.customErrorMessage, field, validator), customMsgExists, stripParams(validatorSpec), []string{}}
 						}

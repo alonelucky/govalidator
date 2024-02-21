@@ -51,8 +51,8 @@ func InRangeInt(value, left, right interface{}) bool {
 	return value64 >= left64 && value64 <= right64
 }
 
-// InRangeFloat32 returns true if value lies between left and right border
-func InRangeFloat32(value, left, right float32) bool {
+// InRangeUint returns true if value lies between left and right border
+func InRangeUint(value, left, right uint64) bool {
 	if left > right {
 		left, right = right, left
 	}
@@ -72,16 +72,21 @@ func InRangeFloat64(value, left, right float64) bool {
 // False if value doesn't lie in range or if it incompatible or not comparable
 func InRange(value interface{}, left interface{}, right interface{}) bool {
 	switch value.(type) {
-	case int:
-		intValue, _ := ToInt(value)
-		intLeft, _ := ToInt(left)
-		intRight, _ := ToInt(right)
+	case int64:
+		intValue, _ := value.(int64)
+		intLeft, _ := left.(int64)
+		intRight, _ := right.(int64)
 		return InRangeInt(intValue, intLeft, intRight)
-	case float32, float64:
-		intValue, _ := ToFloat(value)
-		intLeft, _ := ToFloat(left)
-		intRight, _ := ToFloat(right)
+	case float64:
+		intValue, _ := value.(float64)
+		intLeft, _ := left.(float64)
+		intRight, _ := right.(float64)
 		return InRangeFloat64(intValue, intLeft, intRight)
+	case uint64:
+		intValue, _ := value.(uint64)
+		intLeft, _ := left.(uint64)
+		intRight, _ := right.(uint64)
+		return InRangeUint(intValue, intLeft, intRight)
 	case string:
 		return value.(string) >= left.(string) && value.(string) <= right.(string)
 	default:
