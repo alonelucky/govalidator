@@ -3484,8 +3484,8 @@ func TestValidateStructParamValidatorInt(t *testing.T) {
 		Uint32 uint32 `valid:"in(1|10)"`
 		Uint64 uint64 `valid:"in(1|10)"`
 
-		Float32 float32 `valid:"in(1|10)"`
-		Float64 float64 `valid:"in(1|10)"`
+		Float32 float32 `valid:"in(1.00|10.00)"`
+		Float64 float64 `valid:"in(1.00|10.00)"`
 	}
 
 	test2Ok1 := &Test2{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
@@ -3520,8 +3520,8 @@ func TestValidateStructParamValidatorInt(t *testing.T) {
 		Uint32 uint32 `valid:"in(1|10),uint32"`
 		Uint64 uint64 `valid:"in(1|10),uint64"`
 
-		Float32 float32 `valid:"in(1|10),float32"`
-		Float64 float64 `valid:"in(1|10),float64"`
+		Float32 float32 `valid:"in(1.00|10.00),float32"`
+		Float64 float64 `valid:"in(1.00|10.00),float64"`
 	}
 
 	test3Ok1 := &Test2{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}

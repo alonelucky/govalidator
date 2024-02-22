@@ -1428,11 +1428,22 @@ func Range(v reflect.Value, params ...string) bool {
 // IsInRaw checks if string is in list of allowed values
 func IsInRaw(v reflect.Value, params ...string) bool {
 	if len(params) == 1 {
-		rawParams := params[0]
-
-		parsedParams := strings.Split(rawParams, "|")
-
-		return IsIn(v.String(), parsedParams...)
+		params = strings.Split(params[0], "|")
+		var value string
+		kind := v.Kind()
+		switch kind {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			value = strconv.FormatInt(v.Int(), 10)
+			return IsIn(value, params...)
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			value := strconv.FormatUint(v.Uint(), 10)
+			return IsIn(value, params...)
+		case reflect.Float32, reflect.Float64:
+			value := strconv.FormatFloat(v.Float(), 'f', 2, 64)
+			return IsIn(value, params...)
+		case reflect.String:
+			return IsIn(v.String(), params...)
+		}
 	}
 
 	return false
