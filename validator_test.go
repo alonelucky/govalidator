@@ -2,6 +2,7 @@ package govalidator
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -2376,7 +2377,7 @@ func TestByteLength(t *testing.T) {
 		{"你", "0", "1", false},
 	}
 	for _, test := range tests {
-		actual := ByteLength(test.value, test.min, test.max)
+		actual := ByteLength(reflect.ValueOf(test.value), test.min, test.max)
 		if actual != test.expected {
 			t.Errorf("Expected ByteLength(%s, %s, %s) to be %v, got %v", test.value, test.min, test.max, test.expected, actual)
 		}
@@ -2399,7 +2400,7 @@ func TestRuneLength(t *testing.T) {
 		{"你", "0", "1", true},
 	}
 	for _, test := range tests {
-		actual := RuneLength(test.value, test.min, test.max)
+		actual := RuneLength(reflect.ValueOf(test.value), test.min, test.max)
 		if actual != test.expected {
 			t.Errorf("Expected RuneLength(%s, %s, %s) to be %v, got %v", test.value, test.min, test.max, test.expected, actual)
 		}
@@ -2425,7 +2426,7 @@ func TestStringLength(t *testing.T) {
 		{"あいうえ", "5", "10", false},
 	}
 	for _, test := range tests {
-		actual := StringLength(test.value, test.min, test.max)
+		actual := StringLength(reflect.ValueOf(test.value), test.min, test.max)
 		if actual != test.expected {
 			t.Errorf("Expected StringLength(%s, %s, %s) to be %v, got %v", test.value, test.min, test.max, test.expected, actual)
 		}

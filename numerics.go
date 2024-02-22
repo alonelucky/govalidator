@@ -2,6 +2,7 @@ package govalidator
 
 import (
 	"math"
+	"reflect"
 )
 
 // Abs returns absolute value of number
@@ -41,10 +42,7 @@ func IsNonPositive(value float64) bool {
 }
 
 // InRangeInt returns true if value lies between left and right border
-func InRangeInt(value, left, right interface{}) bool {
-	value64, _ := ToInt(value)
-	left64, _ := ToInt(left)
-	right64, _ := ToInt(right)
+func InRangeInt(value64, left64, right64 int64) bool {
 	if left64 > right64 {
 		left64, right64 = right64, left64
 	}
@@ -71,23 +69,17 @@ func InRangeFloat64(value, left, right float64) bool {
 // All types must the same type.
 // False if value doesn't lie in range or if it incompatible or not comparable
 func InRange(value interface{}, left interface{}, right interface{}) bool {
-	switch value.(type) {
-	case int64:
-		intValue, _ := value.(int64)
-		intLeft, _ := left.(int64)
-		intRight, _ := right.(int64)
-		return InRangeInt(intValue, intLeft, intRight)
-	case float64:
-		intValue, _ := value.(float64)
-		intLeft, _ := left.(float64)
-		intRight, _ := right.(float64)
-		return InRangeFloat64(intValue, intLeft, intRight)
-	case uint64:
-		intValue, _ := value.(uint64)
-		intLeft, _ := left.(uint64)
-		intRight, _ := right.(uint64)
-		return InRangeUint(intValue, intLeft, intRight)
-	case string:
+	var v = reflect.ValueOf(value)
+	var l = reflect.ValueOf(left)
+	var r = reflect.ValueOf(right)
+	switch v.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return InRangeInt(v.Int(), l.Int(), r.Int())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return InRangeUint(v.Uint(), l.Uint(), r.Uint())
+	case reflect.Float32, reflect.Float64:
+		return InRangeFloat64(v.Float(), l.Float(), r.Float())
+	case reflect.String:
 		return value.(string) >= left.(string) && value.(string) <= right.(string)
 	default:
 		return false

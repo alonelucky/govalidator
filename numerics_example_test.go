@@ -42,10 +42,10 @@ func ExampleInRangeInt() {
 	_ = InRangeInt(10, 11, 20)  // false
 }
 
-func ExampleInRangeFloat32() {
-	_ = InRangeFloat32(10.02, -10.124, 10.234) // true
-	_ = InRangeFloat32(10.123, 10.123, 20.431) // true
-	_ = InRangeFloat32(10.235, 11.124, 20.235) // false
+func ExampleInRangeUint() {
+	_ = InRangeUint(10, 0, 10)  // true
+	_ = InRangeUint(11, 10, 20) // true
+	_ = InRangeUint(30, 10, 20) // false
 }
 
 func ExampleInRangeFloat64() {
